@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>JExpense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header>
+      <h2>Expense Tracker</h2>
+    </header>
+      <form id="my-form">
+        <div class="msg" id ="msg"></div>
+        <div>
+          <label for="expenseAmt">Expense Amount :</label>
+          <input type="text" id="eAmnt">
+          <label for="description">Description :</label>
+          <input type="text" id="des">
+          <label for="category"> Choose a Category :</label>
+          <select name="cat" id="cat">
+            <option value="Petrol">Petrol</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+          </select>
+          <input class="btn" type="submit" value="Add Expense">
+        </div>
+      </form>
+      <ul id="lStrorage">
+
+      </ul>
+    
+
+    <script type="text/javascript">
+
+        
+        var form = document.getElementById('my-form');
+        form.addEventListener('submit',additem);
+        var i = 0;
+
+
+       function removeExpenseFromScreen(em){
+            const parentNode = document.getElementById('lStrorage');
+            const childnode = document.getElementById(em);
+            if(childnode){
+                parentNode.removeChild(childnode);
+            }
+        
+       }
+       
+
+        function additem(e){
+            e.preventDefault();
+            
+            var eAmnt = document.getElementById('eAmnt').value;
+            var des = document.getElementById('des').value;
+            var cat = document.getElementById('cat').value;
+
+            let myObj = {
+                    amnt : eAmnt,
+                    description : des,
+                    category : cat
+            };
+            let myObj_serialized = JSON.stringify(myObj);
+                
+            localStorage.setItem(des,myObj_serialized);
+            let myobj_deserialized = JSON.parse(localStorage.getItem(des));
+            var ul = document.getElementById('lStrorage');
+
+            const childHTML = `<li id=${myObj.description}> Expense Amount : ${myobj_deserialized .amnt} || Description :  ${myobj_deserialized .description} || Category : ${myobj_deserialized .category}
+                                        <button onclick=deleteExpense('${myobj_deserialized.description}')> Delete Expense</button>
+                                        <button onclick=editExpense('${myobj_deserialized.amnt}','${myobj_deserialized.description}','${myobj_deserialized.category}')> Edit Expense</button>
+                                     </li>`
+
+            ul.innerHTML = ul.innerHTML + childHTML;
+
+        }
+        
+        function deleteExpense(eAmnt){
+                console.log(eAmnt)
+                localStorage.removeItem(eAmnt);
+                removeExpenseFromScreen(eAmnt);
+
+        }
+        function editExpense(eAmnt,description,cat){
+                document.getElementById('eAmnt').value = eAmnt;
+                document.getElementById('des').value = description;
+                document.getElementById('cat').value=cat;
+                deleteExpense(description)
+        }
+        
+        
+        window.addEventListener('DOMContentLoaded', (event) => {
+            let d = document.getElementById("lStrorage");
+            let exp;
+            for (var i = 0; i < localStorage.length; i++) { 
+                exp = localStorage.key(i);
+                let myobj_deserialized = JSON.parse(localStorage.getItem(exp));
+                var newText = document.createTextNode(' Expense Amount : '+myobj_deserialized.amnt+" || Description : "+myobj_deserialized.description+" || Category : "+myobj_deserialized.category);
+                d.insertAdjacentHTML('beforeend', '<li id='+myobj_deserialized.description+'>'+newText.textContent+` <button onclick=deleteExpense('${myobj_deserialized.description}')> Delete Expense </button><button onclick=editExpense('${myobj_deserialized.amnt}','${myobj_deserialized.description}','${myobj_deserialized.category}')> Edit Expense </button></li>`); 
+            }
+            
+        });
+    </script>
+  </body>
+</html>
