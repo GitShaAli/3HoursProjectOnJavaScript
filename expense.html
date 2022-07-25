@@ -10,6 +10,7 @@
   <body>
     <header>
       <h2>Expense Tracker</h2>
+        
     </header>
       <form id="my-form">
         <div class="msg" id ="msg"></div>
@@ -31,7 +32,7 @@
       <ul id="lStrorage">
 
       </ul>
-    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
 
     <script type="text/javascript">
 
@@ -49,58 +50,71 @@
             }
         
        }
+       function showNewExpenseOnScreen(Expense){
+          const parentNode = document.getElementById("lStrorage");
+          const childNode = `<li id=${Expense._id}> Expense Amount : ${Expense.amnt} - Description : ${Expense.description} - Category : ${Expense.category}
+                                        <button onclick=deleteExpense('${Expense._id}')> Delete</button>
+                                        <button onclick=editExpense('${Expense._id}','${Expense.amnt}','${Expense.description}','${Expense.category}')> Edit </button>
+                                      </li>`;
+          parentNode.innerHTML = parentNode.innerHTML+childNode;         
+        }
        
 
         function additem(e){
             e.preventDefault();
-            
             var eAmnt = document.getElementById('eAmnt').value;
             var des = document.getElementById('des').value;
             var cat = document.getElementById('cat').value;
+              let myObj = {
+                      amnt : eAmnt,
+                      description : des,
+                      category : cat
+              };
 
-            let myObj = {
-                    amnt : eAmnt,
-                    description : des,
-                    category : cat
-            };
-            let myObj_serialized = JSON.stringify(myObj);
-                
-            localStorage.setItem(des,myObj_serialized);
-            let myobj_deserialized = JSON.parse(localStorage.getItem(des));
-            var ul = document.getElementById('lStrorage');
 
-            const childHTML = `<li id=${myObj.description}> Expense Amount : ${myobj_deserialized .amnt} || Description :  ${myobj_deserialized .description} || Category : ${myobj_deserialized .category}
-                                        <button onclick=deleteExpense('${myobj_deserialized.description}')> Delete Expense</button>
-                                        <button onclick=editExpense('${myobj_deserialized.amnt}','${myobj_deserialized.description}','${myobj_deserialized.category}')> Edit Expense</button>
-                                     </li>`
-
-            ul.innerHTML = ul.innerHTML + childHTML;
+              let myObj_serialized = JSON.stringify(myObj);
+              axios.post("https://crudcrud.com/api/300801b62a1e40239cd4ca039295919f/Expenses",myObj)
+              .then((response)=>{
+                showNewExpenseOnScreen(response.data)
+                console.log(response)
+              })
+              .catch((err)=>{
+                  document.body.innerHTML=document.body.innerHTML+'Something went wrong.'
+                  console.log(err)
+              })
+            
+              document.getElementById("des").disabled = false;
+              document.getElementById('des').value = "";
+              document.getElementById('cat').value = "";
+              document.getElementById('eAmnt').value = "";
 
         }
         
-        function deleteExpense(eAmnt){
-                console.log(eAmnt)
-                localStorage.removeItem(eAmnt);
-                removeExpenseFromScreen(eAmnt);
-
+        function deleteExpense(id){
+                axios.delete(`https://crudcrud.com/api/300801b62a1e40239cd4ca039295919f/Expenses/${id}`)
+                removeExpenseFromScreen(id);
         }
-        function editExpense(eAmnt,description,cat){
+        function editExpense(id,eAmnt,description,cat){
                 document.getElementById('eAmnt').value = eAmnt;
                 document.getElementById('des').value = description;
+                document.getElementById("des").disabled = true;
                 document.getElementById('cat').value=cat;
-                deleteExpense(description)
+                deleteExpense(id);
         }
         
         
         window.addEventListener('DOMContentLoaded', (event) => {
-            let d = document.getElementById("lStrorage");
-            let exp;
-            for (var i = 0; i < localStorage.length; i++) { 
-                exp = localStorage.key(i);
-                let myobj_deserialized = JSON.parse(localStorage.getItem(exp));
-                var newText = document.createTextNode(' Expense Amount : '+myobj_deserialized.amnt+" || Description : "+myobj_deserialized.description+" || Category : "+myobj_deserialized.category);
-                d.insertAdjacentHTML('beforeend', '<li id='+myobj_deserialized.description+'>'+newText.textContent+` <button onclick=deleteExpense('${myobj_deserialized.description}')> Delete Expense </button><button onclick=editExpense('${myobj_deserialized.amnt}','${myobj_deserialized.description}','${myobj_deserialized.category}')> Edit Expense </button></li>`); 
+          axios.get("https://crudcrud.com/api/300801b62a1e40239cd4ca039295919f/Expenses")
+            .then((response)=>{
+                let d = document.getElementById("lStrorage");
+            for (var i = 0; i < response.data.length; i++) { 
+                showNewExpenseOnScreen(response.data[i]);
             }
+            console.log(response);
+            })
+            .catch((err)=>{
+                console.log(err)
+            })
             
         });
     </script>
